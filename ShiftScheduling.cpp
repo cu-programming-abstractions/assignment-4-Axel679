@@ -2,21 +2,53 @@
 using namespace std;
 
 int numSchedulesFor(const Set<Shift>& shifts, int maxHours) {
-    /* TODO: Delete this comment and the lines below it, then implement
-     * this function.
-     */
-    (void) shifts;
-    (void) maxHours;
-    return -1;
+    Vector<Shift> shiftList = shifts.toVector();
+
+    std::function<int(int, int)> countSchedules;
+    countSchedules = [&](int index, int hoursLeft) -> int {
+        if (index == shiftList.size()) return 1;
+
+        int total = countSchedules(index + 1, hoursLeft);
+
+        const Shift& current = shiftList[index];
+        int duration = current.endTime - current.startTime;
+        if (duration <= hoursLeft) {
+            total += countSchedules(index + 1, hoursLeft - duration);
+        }
+
+        return total;
+    };
+
+    return countSchedules(0, maxHours);
 }
 
 Set<Shift> maxProfitSchedule(const Set<Shift>& shifts, int maxHours) {
-    /* TODO: Delete this comment and the lines below it, then implement
-     * this function.
-     */
-    (void) shifts;
-    (void) maxHours;
-    return {};
+    Vector<Shift> shiftList = shifts.toVector();
+    Set<Shift> bestSet;
+    int bestValue = 0;
+
+    std::function<void(int, int, int, Set<Shift>)> backtrack;
+    backtrack = [&](int index, int hoursLeft, int currentValue, Set<Shift> chosen) {
+        if (index == shiftList.size()) {
+            if (currentValue > bestValue) {
+                bestValue = currentValue;
+                bestSet = chosen;
+            }
+            return;
+        }
+
+        backtrack(index + 1, hoursLeft, currentValue, chosen);
+
+        const Shift& current = shiftList[index];
+        int duration = current.endTime - current.startTime;
+        if (duration <= hoursLeft) {
+            chosen.add(current);
+            backtrack(index + 1, hoursLeft - duration, currentValue + current.value, chosen);
+        }
+    };
+
+    backtrack(0, maxHours, 0, {});
+    return bestSet;
 }
 
 
@@ -25,9 +57,19 @@ Set<Shift> maxProfitSchedule(const Set<Shift>& shifts, int maxHours) {
 /* * * * * * Test Cases * * * * * */
 #include "GUI/SimpleTest.h"
 
-/* TODO: Add your own tests here. You know the drill - look for edge cases, think about
- * very small and very large cases, etc.
- */
+STUDENT_TEST("Simple test with non-overlapping shifts") {
+    Set<Shift> shifts = {
+        {1, 4, 10},
+        {5, 7, 8},
+        {8, 10, 6}
+    };
+
+    EXPECT_EQUAL(numSchedulesFor(shifts, 6), 4);
+    Set<Shift> best = maxProfitSchedule(shifts, 6);
+    int totalValue = 0;
+    for (Shift s : best) totalValue += s.value;
+    EXPECT_EQUAL(totalValue, 10); //
+}
 
 
 
