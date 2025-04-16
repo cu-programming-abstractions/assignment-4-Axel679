@@ -1,22 +1,45 @@
 #include "WinSumLoseSum.h"
+#include <functional>
 using namespace std;
 
-Optional<Set<int>> makeTarget(const Set<int>& elems, int target) {
-    /* TODO: Delete this comment and the next few lines, then implement this
-     * function.
-     */
-    (void) elems;
-    (void) target;
-    return Nothing;
+Optional<get<int>> makeTarget(const Set<int>& elems, int target) {
+    std::function<Optional<get<int>>(Vector<int>, int, int)> helper;
+
+    helper = [&](vector<int> values, int index, int remaining) -> Optional<get<int>> {
+
+        if (remaining == 0) {
+            return {};
+        }
+
+        if (index >= values.size()) {
+            return Nothing;
+        }
+
+        int current = values[index];
+
+
+        Optional<get<int>> withCurrent = helper(values, index + 1, remaining - current);
+        if (withCurrent) {
+            withCurrent->add(current);
+            return withCurrent;
+        }
+
+
+        return helper(values, index + 1, remaining);
+    };
+
+    vector<int> elemsVec = elems.toVector();
+    return helper(elemsVec, 0, target);
 }
 
 /* * * * * Test Cases Below This Point * * * * */
 #include "GUI/SimpleTest.h"
 
-/* TODO: Add at least one custom test here, then delete this comment. */
-
-
-
+STUDENT_TEST("Works with larger target and mixed elements") {
+    Set<int> nums = {2, 4, 6, 10};
+    EXPECT_NOT_EQUAL(makeTarget(nums, 16), Nothing); // 6 + 10
+    EXPECT_EQUAL(makeTarget(nums, 3), Nothing);
+}
 
 /* * * * * Provided Tests Below This Point * * * * */
 PROVIDED_TEST("Works for an empty set of numbers.") {

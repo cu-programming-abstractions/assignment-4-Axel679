@@ -3,10 +3,16 @@ using namespace std;
 
 Optional<Set<string>> placeEmergencySupplies(const Map<string, Set<string>>& roadNetwork,
                                              int numCities) {
-    /* TODO: Delete this comment and next few lines, then implement this function. */
-    (void) roadNetwork;
-    (void) numCities;
-    return Nothing;
+    if (numCities < 0) error("Number of cities must be non-negative.");
+
+    Vector<string> cities = roadNetwork.keys();
+    Set<string> result;
+
+    if (helper(cities, roadNetwork, numCities, 0, result)) {
+        return result;
+    } else {
+        return Nothing;
+    }
 }
 
 
